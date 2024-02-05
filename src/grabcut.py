@@ -6,11 +6,6 @@ from sklearn.mixture import GaussianMixture
 from tqdm.auto import tqdm as tq
 
 con = namedtuple('_', ('FIX', 'UNK', 'FG', 'BG'))(1, 0, 1, 0)
-NUM_GMM_COMP = 5
-GAMMA = 50
-LAMDA = 9 * GAMMA
-NUM_ITERS = 10
-TOL = 1e-3
 
 def fit_gmms(img, alphas, n_components):
     fg = GaussianMixture(n_components=n_components)
@@ -24,16 +19,13 @@ def fit_gmms(img, alphas, n_components):
 def graph_cut(img, types, alphas, fg_gmm, bg_gmm, beta, gamma, lamda, connect_diag):
     logging.info('GRAPH CUT')
     
-    # compute region energy in one go to speed up
     fg_D = - fg_gmm.score_samples(img.reshape((-1, img.shape[-1]))).reshape(img.shape[:-1])
     bg_D = - bg_gmm.score_samples(img.reshape((-1, img.shape[-1]))).reshape(img.shape[:-1])
 
-    # closure function to calculate boundary energy
     def compute_V(i, j, oi, oj):
         diff = img[i, j] - img[oi, oj]
         return gamma * np.exp(- beta * diff.dot(diff))
 
-    # fixed capacity for known edges
     fix_cap = lamda
 
     # BUILD GRAPH
@@ -50,7 +42,6 @@ def graph_cut(img, types, alphas, fg_gmm, bg_gmm, beta, gamma, lamda, connect_di
     graph.add_vertices(num_pix + 2)
     S = num_pix
     T = num_pix+1
-    # the last two vertices are S and T respectively
 
     edges = []
     weights = []
@@ -106,7 +97,7 @@ def graph_cut(img, types, alphas, fg_gmm, bg_gmm, beta, gamma, lamda, connect_di
     if S in bg_vertices:
         bg_vertices, fg_vertices = fg_vertices, bg_vertices
     
-    new_alphas = np.zeros(img.shape[:2], dtype=np.uint8) # con.BG is filled, zeroes is faster
+    new_alphas = np.zeros(img.shape[:2], dtype=np.uint8)
     for v in fg_vertices:
         if v not in (S, T):
             new_alphas[ind(v)] = 1
@@ -118,8 +109,8 @@ def grab_cut(img_, types_, alphas_, n_components, gamma, lamda,
     
     logging.debug('GRAB CUT')
     img = img_.copy().astype(np.float32)
-    types = types_.copy() # types tells whether the pixel is fixed or unknown
-    alphas = alphas_.copy() # alphas tells whether the pixel is fg or bg according to fixed or current estimate
+    types = types_.copy() 
+    alphas = alphas_.copy() 
     
     # calculate beta
     logging.info('CALC BETA')

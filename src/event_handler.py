@@ -85,21 +85,20 @@ class EventHandler:
         
         # Draw strokes for refinement 
         if event == cv2.EVENT_LBUTTONDOWN:
-            if self.FLAGS['rect_over'] == True:
+            if self.FLAGS['rect_over']:
                 self.FLAGS['DRAW_STROKE'] = True
-                cv2.circle(self.img, (x,y), 3, self.FLAGS['value']['color'], -1)
-                cv2.circle(self._alphas, (x,y), 3, self.FLAGS['value']['val'], -1)
-                cv2.circle(self._types, (x,y), 3, con.FIX, -1)
+                self.prev_point = (x, y)
 
         elif event == cv2.EVENT_MOUSEMOVE:
-            if self.FLAGS['DRAW_STROKE'] == True:
-                cv2.circle(self.img, (x, y), 3, self.FLAGS['value']['color'], -1)
-                cv2.circle(self._alphas, (x,y), 3, self.FLAGS['value']['val'], -1)
-                cv2.circle(self._types, (x,y), 3, con.FIX, -1)
+            if self.FLAGS['DRAW_STROKE']:
+                cv2.line(self.img, self.prev_point, (x, y), self.FLAGS['value']['color'], 3)
+                cv2.line(self._alphas, self.prev_point, (x, y), self.FLAGS['value']['val'], 3)
+                cv2.line(self._types, self.prev_point, (x, y), con.FIX, 3)
+                self.prev_point = (x, y)
 
         elif event == cv2.EVENT_LBUTTONUP:
-            if self.FLAGS['DRAW_STROKE'] == True:
+            if self.FLAGS['DRAW_STROKE']:
                 self.FLAGS['DRAW_STROKE'] = False
-                cv2.circle(self.img, (x, y), 3, self.FLAGS['value']['color'], -1)
-                cv2.circle(self._alphas, (x,y), 3, self.FLAGS['value']['val'], -1)
-                cv2.circle(self._types, (x,y), 3, con.FIX, -1)
+                cv2.line(self.img, self.prev_point, (x, y), self.FLAGS['value']['color'], 3)
+                cv2.line(self._alphas, self.prev_point, (x, y), self.FLAGS['value']['val'], 3)
+                cv2.line(self._types, self.prev_point, (x, y), con.FIX, 3)
